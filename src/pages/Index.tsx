@@ -6,45 +6,46 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
-
 type UploadStatus = "idle" | "uploading" | "processing" | "ready";
-
 const Index = () => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   const handleImageUpload = async (file: File) => {
     setUploadStatus("uploading");
     const localImageUrl = URL.createObjectURL(file);
     setUploadedImage(localImageUrl);
-
     try {
       // Upload to cloud storage first
-      const { supabase } = await import("@/integrations/supabase/client");
+      const {
+        supabase
+      } = await import("@/integrations/supabase/client");
       const fileName = `${Date.now()}-${file.name}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('uploads')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
+      const {
+        data: uploadData,
+        error: uploadError
+      } = await supabase.storage.from('uploads').upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
       if (uploadError) {
         throw new Error(`Storage upload failed: ${uploadError.message}`);
       }
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('uploads')
-        .getPublicUrl(fileName);
+      const {
+        data: {
+          publicUrl
+        }
+      } = supabase.storage.from('uploads').getPublicUrl(fileName);
 
       // Now send to n8n webhook with the public URL
       const formData = new FormData();
       formData.append("image", file);
-      
+
       // Include metadata with public image URL and user info
       const metadata = {
         imageUrl: publicUrl,
@@ -55,73 +56,56 @@ const Index = () => {
         ...(userInfo && {
           userName: userInfo.name,
           userPhoneNumber: userInfo.phoneNumber,
-          userLocation: userInfo.location,
+          userLocation: userInfo.location
         })
       };
       formData.append("metadata", JSON.stringify(metadata));
-
       const response = await fetch("https://hellio.app.n8n.cloud/webhook-test/258992ad-34a7-4d90-918f-2768de1e6e5c", {
         method: "POST",
-        body: formData,
+        body: formData
       });
-
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
-      
       setUploadStatus("processing");
-      
+
       // Simulating processing time
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
+      await new Promise(resolve => setTimeout(resolve, 2000));
       setUploadStatus("ready");
-      
       toast({
         title: "Image processed!",
-        description: "You can now talk to the agent about your image.",
+        description: "You can now talk to the agent about your image."
       });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
         title: "Upload failed",
         description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
       setUploadStatus("idle");
     }
   };
-
   const resetUpload = () => {
     setUploadStatus("idle");
     setUploadedImage(null);
     setUserInfo(null);
   };
-
   const handleUserInfoSubmit = (data: UserInfo) => {
     setUserInfo(data);
     toast({
       title: "Information saved",
-      description: "You can now upload your image.",
+      description: "You can now upload your image."
     });
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10">
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
           {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Image Analysis Agent
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Upload an image and have a conversation with our AI agent about it
-            </p>
-          </div>
+          
 
           {/* User Info Form */}
-          {!userInfo && (
-            <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
+          {!userInfo && <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
               <div className="space-y-4">
                 <div>
                   <h2 className="text-2xl font-semibold">Your Information</h2>
@@ -129,52 +113,31 @@ const Index = () => {
                 </div>
                 <UserInfoForm onSubmit={handleUserInfoSubmit} />
               </div>
-            </Card>
-          )}
+            </Card>}
 
           {/* Upload Section */}
-          {userInfo && (
-            <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
-              {uploadStatus === "idle" && (
-                <ImageUpload onImageSelect={handleImageUpload} />
-              )}
+          {userInfo && <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
+              {uploadStatus === "idle" && <ImageUpload onImageSelect={handleImageUpload} />}
 
-            {uploadStatus === "uploading" && (
-              <div className="text-center py-12 space-y-4 animate-scale-in">
+            {uploadStatus === "uploading" && <div className="text-center py-12 space-y-4 animate-scale-in">
                 <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
                 <p className="text-lg font-medium">Uploading image...</p>
-              </div>
-            )}
+              </div>}
 
-            {uploadStatus === "processing" && (
-              <div className="text-center py-12 space-y-4 animate-scale-in">
+            {uploadStatus === "processing" && <div className="text-center py-12 space-y-4 animate-scale-in">
                 <div className="relative">
-                  {uploadedImage && (
-                    <img
-                      src={uploadedImage}
-                      alt="Uploaded"
-                      className="max-w-xs mx-auto rounded-lg shadow-md mb-6"
-                    />
-                  )}
+                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-xs mx-auto rounded-lg shadow-md mb-6" />}
                 </div>
                 <Loader2 className="w-16 h-16 mx-auto text-accent animate-spin" />
                 <p className="text-lg font-medium">Processing image...</p>
                 <p className="text-sm text-muted-foreground">
                   Analyzing and preparing for conversation
                 </p>
-              </div>
-            )}
+              </div>}
 
-            {uploadStatus === "ready" && (
-              <div className="space-y-6 animate-fade-in">
+            {uploadStatus === "ready" && <div className="space-y-6 animate-fade-in">
                 <div className="text-center space-y-4 pb-6 border-b border-border">
-                  {uploadedImage && (
-                    <img
-                      src={uploadedImage}
-                      alt="Uploaded"
-                      className="max-w-sm mx-auto rounded-lg shadow-md"
-                    />
-                  )}
+                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md" />}
                   <div className="flex items-center justify-center gap-2 text-primary">
                     <CheckCircle2 className="w-6 h-6" />
                     <p className="text-lg font-medium">Image ready for analysis</p>
@@ -189,22 +152,15 @@ const Index = () => {
                   
                   <VoiceAgent />
                   
-                  <Button
-                    onClick={resetUpload}
-                    variant="outline"
-                    className="w-full mt-4"
-                  >
+                  <Button onClick={resetUpload} variant="outline" className="w-full mt-4">
                     Upload Another Image
                   </Button>
                 </div>
-              </div>
-            )}
-            </Card>
-          )}
+              </div>}
+            </Card>}
 
           {/* Info Cards */}
-          {uploadStatus === "idle" && userInfo && (
-            <div className="grid md:grid-cols-3 gap-4 animate-fade-in">
+          {uploadStatus === "idle" && userInfo && <div className="grid md:grid-cols-3 gap-4 animate-fade-in">
               <Card className="p-4 backdrop-blur-sm bg-card/60 border-border/50">
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
@@ -246,12 +202,9 @@ const Index = () => {
                   </div>
                 </div>
               </Card>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
