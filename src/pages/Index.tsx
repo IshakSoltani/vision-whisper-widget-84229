@@ -44,11 +44,7 @@ const Index = () => {
         }
       } = supabase.storage.from('uploads').getPublicUrl(fileName);
 
-      // Now send to n8n webhook with the public URL
-      const formData = new FormData();
-      formData.append("image", file);
-
-      // Include metadata with public image URL and user info
+      // Send only the metadata with image URL to n8n (no binary file)
       const metadata = {
         imageUrl: publicUrl,
         fileName: file.name,
@@ -60,22 +56,27 @@ const Index = () => {
           claimId: userInfo.claimId
         })
       };
-      formData.append("metadata", JSON.stringify(metadata));
+
+      setUploadStatus("verifying");
+      
       const response = await fetch("https://hellio.app.n8n.cloud/webhook-test/258992ad-34a7-4d90-918f-2768de1e6e5c", {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(metadata)
       });
+      
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
 
-      setUploadStatus("verifying");
-      
       // Parse n8n response
       const n8nResponse = await response.json();
       console.log("n8n response:", n8nResponse);
 
-      if (n8nResponse.approved) {
+      // Check if response has the approved field
+      if (n8nResponse.approved === true) {
         // Navigate to conversation page with image data
         navigate("/conversation", {
           state: {
@@ -83,8 +84,16 @@ const Index = () => {
             userName: userInfo?.name || "Guest"
           }
         });
-      } else {
+      } else if (n8nResponse.approved === false) {
         throw new Error(n8nResponse.message || "Image not approved");
+      } else {
+        // If no approved field, show message and wait
+        toast({
+          title: "Processing",
+          description: n8nResponse.message || "Your submission is being reviewed. Please wait...",
+        });
+        // Keep in verifying state
+        return;
       }
       toast({
         title: "Image processed!",
