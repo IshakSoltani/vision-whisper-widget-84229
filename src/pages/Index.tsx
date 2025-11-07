@@ -60,13 +60,21 @@ const Index = () => {
 
       setUploadStatus("verifying");
       
-      const response = await fetch("https://hellio.app.n8n.cloud/webhook-test/258992ad-34a7-4d90-918f-2768de1e6e5c", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(metadata)
-      });
+      // Create a timeout controller for 2 minutes
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes
+      
+      try {
+        const response = await fetch("https://hellio.app.n8n.cloud/webhook-test/258992ad-34a7-4d90-918f-2768de1e6e5c", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(metadata),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
@@ -122,13 +130,27 @@ const Index = () => {
       } else {
         throw new Error(`Unexpected status: ${n8nResponse.status}`);
       }
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        throw fetchError;
+      }
     } catch (error) {
       console.error("Upload error:", error);
-      toast({
-        title: "Upload failed",
-        description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive"
-      });
+      
+      // Handle timeout specifically
+      if (error instanceof Error && error.name === 'AbortError') {
+        toast({
+          title: "Request timeout",
+          description: "The verification is taking longer than expected. Please try again or contact support.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Please try again.",
+          variant: "destructive"
+        });
+      }
       setUploadStatus("idle");
     }
   };
