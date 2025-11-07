@@ -57,8 +57,7 @@ const Index = () => {
         uploadTimestamp: new Date().toISOString(),
         ...(userInfo && {
           userName: userInfo.name,
-          userPhoneNumber: userInfo.phoneNumber,
-          userLocation: userInfo.location
+          claimId: userInfo.claimId
         })
       };
       formData.append("metadata", JSON.stringify(metadata));
