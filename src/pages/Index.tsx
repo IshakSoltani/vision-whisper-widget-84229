@@ -227,7 +227,7 @@ const Index = () => {
 
             {uploadStatus === "evaluates" && <div className="text-center py-12 space-y-4 animate-fade-in">
                 {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md mb-6" />}
-                <Loader2 className="w-16 h-16 mx-auto text-accent animate-spin" />
+                <CheckCircle2 className="w-16 h-16 mx-auto text-accent" />
                 <p className="text-xl font-semibold">Under Evaluation</p>
                 <p className="text-muted-foreground">{n8nMessage || "Your submission is being reviewed. We'll notify you once the evaluation is complete."}</p>
                 <Button onClick={resetUpload} variant="outline" className="mt-4">
