@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Upload, CheckCircle2, Loader2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,8 +7,9 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
-type UploadStatus = "idle" | "uploading" | "processing" | "ready";
+type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready";
 const Index = () => {
+  const navigate = useNavigate();
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -67,11 +69,24 @@ const Index = () => {
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
-      setUploadStatus("processing");
 
-      // Simulating processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setUploadStatus("ready");
+      setUploadStatus("verifying");
+      
+      // Parse n8n response
+      const n8nResponse = await response.json();
+      console.log("n8n response:", n8nResponse);
+
+      if (n8nResponse.approved) {
+        // Navigate to conversation page with image data
+        navigate("/conversation", {
+          state: {
+            imageUrl: publicUrl,
+            userName: userInfo?.name || "Guest"
+          }
+        });
+      } else {
+        throw new Error(n8nResponse.message || "Image not approved");
+      }
       toast({
         title: "Image processed!",
         description: "You can now talk to the agent about your image."
@@ -122,6 +137,17 @@ const Index = () => {
             {uploadStatus === "uploading" && <div className="text-center py-12 space-y-4 animate-scale-in">
                 <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
                 <p className="text-lg font-medium">Uploading image...</p>
+              </div>}
+
+            {uploadStatus === "verifying" && <div className="text-center py-12 space-y-4 animate-scale-in">
+                <div className="relative">
+                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-xs mx-auto rounded-lg shadow-md mb-6" />}
+                </div>
+                <Loader2 className="w-16 h-16 mx-auto text-accent animate-spin" />
+                <p className="text-lg font-medium">Verifying your submission...</p>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we review your image
+                </p>
               </div>}
 
             {uploadStatus === "processing" && <div className="text-center py-12 space-y-4 animate-scale-in">

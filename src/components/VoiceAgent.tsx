@@ -1,7 +1,12 @@
 import { useEffect, useRef } from "react";
 
-const VoiceAgent = () => {
+interface VoiceAgentProps {
+  onConversationEnd?: () => void;
+}
+
+const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const fallbackTimerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     // Load the ElevenLabs widget script
@@ -11,13 +16,40 @@ const VoiceAgent = () => {
     script.type = "text/javascript";
     document.body.appendChild(script);
 
+    // Set up fallback timer (5 minutes)
+    if (onConversationEnd) {
+      fallbackTimerRef.current = setTimeout(() => {
+        console.log("Conversation timeout reached");
+        onConversationEnd();
+      }, 5 * 60 * 1000);
+    }
+
+    // Listen for any potential widget events
+    const handleMessage = (event: MessageEvent) => {
+      // Check for ElevenLabs widget events
+      if (event.data?.type === "elevenlabs-conversation-end" || 
+          event.data?.event === "conversation-ended") {
+        console.log("Conversation ended via event");
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+        }
+        onConversationEnd?.();
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
     return () => {
-      // Cleanup script on unmount
+      // Cleanup
       if (document.body.contains(script)) {
         document.body.removeChild(script);
       }
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+      }
+      window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [onConversationEnd]);
 
   return (
     <div ref={containerRef} className="w-full">
