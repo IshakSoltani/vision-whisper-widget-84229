@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 interface LocationState {
   imageUrl: string;
   userName: string;
+  claimId?: string;
 }
 
 const Conversation = () => {
@@ -37,7 +38,10 @@ const Conversation = () => {
         console.log("Fetching transcript for conversation:", conversationId);
         
         const { data, error } = await supabase.functions.invoke('get-elevenlabs-transcript', {
-          body: { conversationId }
+          body: { 
+            conversationId,
+            claimId: state.claimId
+          }
         });
 
         if (error) throw error;

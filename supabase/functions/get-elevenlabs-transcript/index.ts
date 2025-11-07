@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { conversationId } = await req.json();
+    const { conversationId, claimId } = await req.json();
     
     if (!conversationId) {
       throw new Error('Conversation ID is required');
@@ -44,6 +44,39 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log('Transcript retrieved successfully');
+
+    // Send transcript to n8n webhook
+    const n8nWebhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
+    if (n8nWebhookUrl) {
+      try {
+        const n8nPayload = {
+          conversationId,
+          transcript: data,
+          claimId: claimId || null,
+          timestamp: new Date().toISOString(),
+        };
+
+        console.log('Sending transcript to n8n:', n8nWebhookUrl);
+        const n8nResponse = await fetch(n8nWebhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(n8nPayload),
+        });
+
+        if (!n8nResponse.ok) {
+          console.error('n8n webhook failed:', await n8nResponse.text());
+        } else {
+          console.log('Successfully sent transcript to n8n');
+        }
+      } catch (n8nError) {
+        console.error('Error sending to n8n:', n8nError);
+        // Don't fail the request if n8n fails
+      }
+    } else {
+      console.warn('N8N_WEBHOOK_URL not configured');
+    }
 
     return new Response(
       JSON.stringify(data),

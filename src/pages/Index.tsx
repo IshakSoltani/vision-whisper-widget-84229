@@ -117,7 +117,8 @@ const Index = () => {
         navigate("/conversation", {
           state: {
             imageUrl: publicUrl,
-            userName: userInfo?.name || "Guest"
+            userName: userInfo?.name || "Guest",
+            claimId: userInfo?.claimId
           }
         });
       } else if (n8nResponse.status === "evaluates") {
