@@ -78,6 +78,53 @@ serve(async (req) => {
       console.warn('N8N_WEBHOOK_URL not configured');
     }
 
+    // Send transcript to Airtable
+    const airtableApiKey = Deno.env.get('AIRTABLE_API_KEY');
+    const airtableBaseId = Deno.env.get('AIRTABLE_BASE_ID');
+    const airtableTableName = Deno.env.get('AIRTABLE_TABLE_NAME');
+
+    if (airtableApiKey && airtableBaseId && airtableTableName) {
+      try {
+        const airtablePayload = {
+          records: [
+            {
+              fields: {
+                'Conversation ID': conversationId,
+                'Claim ID': claimId || '',
+                'Transcript': JSON.stringify(data, null, 2),
+                'Timestamp': new Date().toISOString(),
+              }
+            }
+          ]
+        };
+
+        console.log('Sending transcript to Airtable');
+        const airtableResponse = await fetch(
+          `https://api.airtable.com/v0/${airtableBaseId}/${encodeURIComponent(airtableTableName)}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${airtableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(airtablePayload),
+          }
+        );
+
+        if (!airtableResponse.ok) {
+          const errorText = await airtableResponse.text();
+          console.error('Airtable API failed:', errorText);
+        } else {
+          console.log('Successfully sent transcript to Airtable');
+        }
+      } catch (airtableError) {
+        console.error('Error sending to Airtable:', airtableError);
+        // Don't fail the request if Airtable fails
+      }
+    } else {
+      console.warn('Airtable credentials not fully configured');
+    }
+
     return new Response(
       JSON.stringify(data),
       {
