@@ -7,12 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
-type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready";
+type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready" | "accepted";
 const Index = () => {
   const navigate = useNavigate();
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [n8nMessage, setN8nMessage] = useState<string>("");
   const {
     toast
   } = useToast();
@@ -75,30 +76,39 @@ const Index = () => {
       const n8nResponse = await response.json();
       console.log("n8n response:", n8nResponse);
 
-      // Check if response has the approved field
-      if (n8nResponse.approved === true) {
-        // Navigate to conversation page with image data
+      // Check for status field and handle three possible responses
+      if (!n8nResponse.status) {
+        throw new Error("Invalid response from server: missing status field");
+      }
+
+      const responseMessage = n8nResponse.message || "";
+      setN8nMessage(responseMessage);
+
+      if (n8nResponse.status === "accepts") {
+        // Evidence upload complete - show completion screen
+        setUploadStatus("accepted");
+        toast({
+          title: "Upload Complete",
+          description: responseMessage || "Your evidence has been accepted."
+        });
+      } else if (n8nResponse.status === "declines") {
+        // Navigate to conversation page with ElevenLabs agent
         navigate("/conversation", {
           state: {
             imageUrl: publicUrl,
             userName: userInfo?.name || "Guest"
           }
         });
-      } else if (n8nResponse.approved === false) {
-        throw new Error(n8nResponse.message || "Image not approved");
-      } else {
-        // If no approved field, show message and wait
+      } else if (n8nResponse.status === "evaluates") {
+        // Show message and keep in verifying state
         toast({
-          title: "Processing",
-          description: n8nResponse.message || "Your submission is being reviewed. Please wait...",
+          title: "Under Evaluation",
+          description: responseMessage || "Your submission is being reviewed. Please wait..."
         });
-        // Keep in verifying state
-        return;
+        // Keep in verifying state - don't change uploadStatus
+      } else {
+        throw new Error(`Unexpected status: ${n8nResponse.status}`);
       }
-      toast({
-        title: "Image processed!",
-        description: "You can now talk to the agent about your image."
-      });
     } catch (error) {
       console.error("Upload error:", error);
       toast({
@@ -113,6 +123,7 @@ const Index = () => {
     setUploadStatus("idle");
     setUploadedImage(null);
     setUserInfo(null);
+    setN8nMessage("");
   };
   const handleUserInfoSubmit = (data: UserInfo) => {
     setUserInfo(data);
@@ -167,6 +178,16 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">
                   Analyzing and preparing for conversation
                 </p>
+              </div>}
+
+            {uploadStatus === "accepted" && <div className="text-center py-12 space-y-4 animate-fade-in">
+                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md mb-6" />}
+                <CheckCircle2 className="w-16 h-16 mx-auto text-green-500" />
+                <p className="text-xl font-semibold">Evidence Upload Complete</p>
+                <p className="text-muted-foreground">{n8nMessage || "Your submission has been successfully processed."}</p>
+                <Button onClick={resetUpload} className="mt-4">
+                  Start Over
+                </Button>
               </div>}
 
             {uploadStatus === "ready" && <div className="space-y-6 animate-fade-in">
