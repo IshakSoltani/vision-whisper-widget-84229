@@ -72,9 +72,22 @@ const Index = () => {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
 
+      // Check if response has content
+      const responseText = await response.text();
+      console.log("n8n raw response:", responseText);
+      
+      if (!responseText || responseText.trim() === '') {
+        throw new Error("No response received from server. Please ensure n8n workflow returns a JSON response.");
+      }
+
       // Parse n8n response
-      const n8nResponse = await response.json();
-      console.log("n8n response:", n8nResponse);
+      let n8nResponse;
+      try {
+        n8nResponse = JSON.parse(responseText);
+        console.log("n8n parsed response:", n8nResponse);
+      } catch (parseError) {
+        throw new Error(`Invalid JSON response from server: ${responseText.substring(0, 100)}`);
+      }
 
       // Check for status field and handle three possible responses
       if (!n8nResponse.status) {
