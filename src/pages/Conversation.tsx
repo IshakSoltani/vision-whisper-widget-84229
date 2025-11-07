@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import VoiceAgent from "@/components/VoiceAgent";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface LocationState {
   imageUrl: string;
@@ -14,7 +16,10 @@ const Conversation = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const state = location.state as LocationState;
+  const { toast } = useToast();
   const [conversationEnded, setConversationEnded] = useState(false);
+  const [transcript, setTranscript] = useState<string>("");
+  const [loadingTranscript, setLoadingTranscript] = useState(false);
 
   useEffect(() => {
     // Redirect if no state data
@@ -23,8 +28,51 @@ const Conversation = () => {
     }
   }, [state, navigate]);
 
-  const handleConversationEnd = () => {
+  const handleConversationEnd = async (conversationId?: string) => {
     setConversationEnded(true);
+    
+    if (conversationId) {
+      setLoadingTranscript(true);
+      try {
+        console.log("Fetching transcript for conversation:", conversationId);
+        
+        const { data, error } = await supabase.functions.invoke('get-elevenlabs-transcript', {
+          body: { conversationId }
+        });
+
+        if (error) throw error;
+
+        console.log("Transcript data:", data);
+        
+        // Extract transcript from conversation data
+        if (data?.transcript) {
+          setTranscript(data.transcript);
+        } else if (data?.analysis?.transcript_text) {
+          setTranscript(data.analysis.transcript_text);
+        } else {
+          // Build transcript from messages if available
+          const messages = data?.messages || [];
+          const transcriptText = messages
+            .map((msg: any) => `${msg.role === 'agent' ? 'Agent' : 'User'}: ${msg.message}`)
+            .join('\n\n');
+          setTranscript(transcriptText || "Transcript not available");
+        }
+
+        toast({
+          title: "Transcript Retrieved",
+          description: "Your conversation transcript is ready",
+        });
+      } catch (error) {
+        console.error("Error fetching transcript:", error);
+        toast({
+          title: "Transcript Error",
+          description: "Could not retrieve conversation transcript",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingTranscript(false);
+      }
+    }
   };
 
   const handleStartOver = () => {
@@ -71,6 +119,23 @@ const Conversation = () => {
                     You'll hear from us soon
                   </p>
                 </div>
+                
+                {loadingTranscript && (
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading transcript...</span>
+                  </div>
+                )}
+
+                {transcript && (
+                  <div className="mt-6 text-left">
+                    <h3 className="text-lg font-semibold mb-3">Conversation Transcript</h3>
+                    <div className="bg-muted/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                      <pre className="text-sm whitespace-pre-wrap">{transcript}</pre>
+                    </div>
+                  </div>
+                )}
+                
                 <Button 
                   onClick={handleStartOver}
                   size="lg"

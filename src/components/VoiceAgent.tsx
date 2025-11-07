@@ -1,12 +1,13 @@
 import { useEffect, useRef } from "react";
 
 interface VoiceAgentProps {
-  onConversationEnd?: () => void;
+  onConversationEnd?: (conversationId?: string) => void;
 }
 
 const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const fallbackTimerRef = useRef<NodeJS.Timeout>();
+  const conversationIdRef = useRef<string | undefined>();
 
   useEffect(() => {
     // Load the ElevenLabs widget script
@@ -26,14 +27,21 @@ const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
 
     // Listen for any potential widget events
     const handleMessage = (event: MessageEvent) => {
+      // Capture conversation ID when it starts
+      if (event.data?.type === "elevenlabs-conversation-start" || 
+          event.data?.event === "conversation-started") {
+        console.log("Conversation started, ID:", event.data?.conversationId);
+        conversationIdRef.current = event.data?.conversationId;
+      }
+      
       // Check for ElevenLabs widget events
       if (event.data?.type === "elevenlabs-conversation-end" || 
           event.data?.event === "conversation-ended") {
-        console.log("Conversation ended via event");
+        console.log("Conversation ended via event, ID:", conversationIdRef.current);
         if (fallbackTimerRef.current) {
           clearTimeout(fallbackTimerRef.current);
         }
-        onConversationEnd?.();
+        onConversationEnd?.(conversationIdRef.current);
       }
     };
 
