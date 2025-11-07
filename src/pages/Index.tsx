@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
-type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready" | "accepted";
+type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready" | "accepted" | "evaluates";
 const Index = () => {
   const navigate = useNavigate();
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
@@ -121,12 +121,12 @@ const Index = () => {
           }
         });
       } else if (n8nResponse.status === "evaluates") {
-        // Show message and keep in verifying state
+        // Show evaluation page with message
+        setUploadStatus("evaluates");
         toast({
           title: "Under Evaluation",
-          description: responseMessage || "Your submission is being reviewed. Please wait..."
+          description: responseMessage || "Your submission is being reviewed."
         });
-        // Keep in verifying state - don't change uploadStatus
       } else {
         throw new Error(`Unexpected status: ${n8nResponse.status}`);
       }
@@ -221,6 +221,16 @@ const Index = () => {
                 <p className="text-xl font-semibold">Evidence Upload Complete</p>
                 <p className="text-muted-foreground">{n8nMessage || "Your submission has been successfully processed."}</p>
                 <Button onClick={resetUpload} className="mt-4">
+                  Start Over
+                </Button>
+              </div>}
+
+            {uploadStatus === "evaluates" && <div className="text-center py-12 space-y-4 animate-fade-in">
+                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md mb-6" />}
+                <Loader2 className="w-16 h-16 mx-auto text-accent animate-spin" />
+                <p className="text-xl font-semibold">Under Evaluation</p>
+                <p className="text-muted-foreground">{n8nMessage || "Your submission is being reviewed. We'll notify you once the evaluation is complete."}</p>
+                <Button onClick={resetUpload} variant="outline" className="mt-4">
                   Start Over
                 </Button>
               </div>}
