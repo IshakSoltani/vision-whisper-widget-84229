@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
+import jessicaLogo from "@/assets/jessica-logo.jpg";
 type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready" | "accepted" | "evaluates";
 const Index = () => {
   const navigate = useNavigate();
@@ -172,7 +173,13 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
           {/* Header */}
-          
+          <div className="text-center mb-8 animate-fade-in">
+            <img 
+              src={jessicaLogo} 
+              alt="Jessica Logo" 
+              className="h-20 md:h-24 mx-auto mb-4 object-contain"
+            />
+          </div>
 
           {/* User Info Form */}
           {!userInfo && <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
