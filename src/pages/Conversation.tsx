@@ -19,7 +19,7 @@ const Conversation = () => {
   const state = location.state as LocationState;
   const { toast } = useToast();
   const [conversationEnded, setConversationEnded] = useState(false);
-  const [conversationId, setConversationId] = useState<string | undefined>();
+  const [transcript, setTranscript] = useState<string>("");
   const [loadingTranscript, setLoadingTranscript] = useState(false);
 
   useEffect(() => {
@@ -29,53 +29,58 @@ const Conversation = () => {
     }
   }, [state, navigate]);
 
-  const handleConversationEnd = (convId?: string) => {
+  const handleConversationEnd = async (conversationId?: string) => {
     setConversationEnded(true);
-    setConversationId(convId);
+    
+    if (conversationId) {
+      setLoadingTranscript(true);
+      try {
+        console.log("Fetching transcript for conversation:", conversationId);
+        
+        const { data, error } = await supabase.functions.invoke('get-elevenlabs-transcript', {
+          body: { 
+            conversationId,
+            claimId: state.claimId
+          }
+        });
+
+        if (error) throw error;
+
+        console.log("Transcript data:", data);
+        
+        // Extract transcript from conversation data
+        if (data?.transcript) {
+          setTranscript(data.transcript);
+        } else if (data?.analysis?.transcript_text) {
+          setTranscript(data.analysis.transcript_text);
+        } else {
+          // Build transcript from messages if available
+          const messages = data?.messages || [];
+          const transcriptText = messages
+            .map((msg: any) => `${msg.role === 'agent' ? 'Agent' : 'User'}: ${msg.message}`)
+            .join('\n\n');
+          setTranscript(transcriptText || "Transcript not available");
+        }
+
+        toast({
+          title: "Transcript Retrieved",
+          description: "Your conversation transcript is ready",
+        });
+      } catch (error) {
+        console.error("Error fetching transcript:", error);
+        toast({
+          title: "Transcript Error",
+          description: "Could not retrieve conversation transcript",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingTranscript(false);
+      }
+    }
   };
 
-  const handleNext = async () => {
-    if (!conversationId) {
-      toast({
-        title: "No Conversation ID",
-        description: "Cannot retrieve transcript",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setLoadingTranscript(true);
-    try {
-      console.log("Fetching transcript and sending to Airtable:", conversationId);
-      
-      const { data, error } = await supabase.functions.invoke('get-elevenlabs-transcript', {
-        body: { 
-          conversationId,
-          claimId: state.claimId
-        }
-      });
-
-      if (error) throw error;
-
-      console.log("Transcript sent to Airtable successfully");
-      
-      toast({
-        title: "Success!",
-        description: "Transcript has been sent to Airtable",
-      });
-
-      // Navigate to home after successful send
-      setTimeout(() => navigate("/"), 1500);
-    } catch (error) {
-      console.error("Error sending transcript:", error);
-      toast({
-        title: "Error",
-        description: "Could not send transcript to Airtable",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingTranscript(false);
-    }
+  const handleStartOver = () => {
+    navigate("/");
   };
 
   if (!state?.imageUrl) {
@@ -113,26 +118,34 @@ const Conversation = () => {
                   <CheckCircle2 className="w-20 h-20 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold">Conversation Complete!</h2>
+                  <h2 className="text-3xl font-bold">Thank You!</h2>
                   <p className="text-xl text-muted-foreground">
-                    Click Next to submit your information
+                    You'll hear from us soon
                   </p>
                 </div>
                 
+                {loadingTranscript && (
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Loading transcript...</span>
+                  </div>
+                )}
+
+                {transcript && (
+                  <div className="mt-6 text-left">
+                    <h3 className="text-lg font-semibold mb-3">Conversation Transcript</h3>
+                    <div className="bg-muted/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                      <pre className="text-sm whitespace-pre-wrap">{transcript}</pre>
+                    </div>
+                  </div>
+                )}
+                
                 <Button 
-                  onClick={handleNext}
+                  onClick={handleStartOver}
                   size="lg"
                   className="mt-6"
-                  disabled={loadingTranscript}
                 >
-                  {loadingTranscript ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Next"
-                  )}
+                  Start Over
                 </Button>
               </div>
             )}
