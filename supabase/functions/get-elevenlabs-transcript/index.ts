@@ -45,39 +45,6 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Transcript retrieved successfully');
 
-    // Send transcript to n8n webhook
-    const n8nWebhookUrl = Deno.env.get('N8N_WEBHOOK_URL');
-    if (n8nWebhookUrl) {
-      try {
-        const n8nPayload = {
-          conversationId,
-          transcript: data,
-          claimId: claimId || null,
-          timestamp: new Date().toISOString(),
-        };
-
-        console.log('Sending transcript to n8n:', n8nWebhookUrl);
-        const n8nResponse = await fetch(n8nWebhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(n8nPayload),
-        });
-
-        if (!n8nResponse.ok) {
-          console.error('n8n webhook failed:', await n8nResponse.text());
-        } else {
-          console.log('Successfully sent transcript to n8n');
-        }
-      } catch (n8nError) {
-        console.error('Error sending to n8n:', n8nError);
-        // Don't fail the request if n8n fails
-      }
-    } else {
-      console.warn('N8N_WEBHOOK_URL not configured');
-    }
-
     // Send transcript to Airtable
     const airtableApiKey = Deno.env.get('AIRTABLE_API_KEY');
     const airtableBaseId = Deno.env.get('AIRTABLE_BASE_ID');
@@ -114,15 +81,17 @@ serve(async (req) => {
         if (!airtableResponse.ok) {
           const errorText = await airtableResponse.text();
           console.error('Airtable API failed:', errorText);
+          throw new Error(`Airtable API error: ${errorText}`);
         } else {
           console.log('Successfully sent transcript to Airtable');
         }
       } catch (airtableError) {
         console.error('Error sending to Airtable:', airtableError);
-        // Don't fail the request if Airtable fails
+        throw airtableError;
       }
     } else {
       console.warn('Airtable credentials not fully configured');
+      throw new Error('Airtable credentials not configured');
     }
 
     return new Response(
