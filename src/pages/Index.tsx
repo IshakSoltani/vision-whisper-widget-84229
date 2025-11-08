@@ -273,33 +273,9 @@ const Index = () => {
                 </div>
               </Card>
 
-              <Card className="p-4 backdrop-blur-sm bg-card/60 border-border/50">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-accent/10">
-                    <Loader2 className="w-5 h-5 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Process</h3>
-                    <p className="text-sm text-muted-foreground">
-                      AI analyzes your image content
-                    </p>
-                  </div>
-                </div>
-              </Card>
+              
 
-              <Card className="p-4 backdrop-blur-sm bg-card/60 border-border/50">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MessageCircle className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Discuss</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Chat with voice agent about details
-                    </p>
-                  </div>
-                </div>
-              </Card>
+              
             </div>}
         </div>
       </div>
