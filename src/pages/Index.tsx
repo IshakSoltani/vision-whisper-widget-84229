@@ -176,7 +176,7 @@ const Index = () => {
               <div className="space-y-4">
                 <div>
                   <h2 className="text-2xl font-semibold">Claim Information</h2>
-                  <p className="text-muted-foreground">Please provide your details about </p>
+                  <p className="text-muted-foreground">Please provide details about your claim</p>
                 </div>
                 <UserInfoForm onSubmit={handleUserInfoSubmit} />
               </div>
