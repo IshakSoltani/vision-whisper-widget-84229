@@ -65,7 +65,7 @@ const Index = () => {
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minutes
 
       try {
-        const response = await fetch("https://hellio.app.n8n.cloud/webhook-test/258992ad-34a7-4d90-918f-2768de1e6e5c", {
+        const response = await fetch("https://hellio.app.n8n.cloud/webhook/258992ad-34a7-4d90-918f-2768de1e6e5c", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
