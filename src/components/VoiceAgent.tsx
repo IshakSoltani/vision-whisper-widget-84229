@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useConversation } from "@11labs/react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Loader2 } from "lucide-react";
@@ -12,7 +12,7 @@ interface VoiceAgentProps {
 const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationId, setConversationId] = useState<string | undefined>();
+  const conversationIdRef = useRef<string | undefined>();
   
   const conversation = useConversation({
     onConnect: () => {
@@ -23,8 +23,9 @@ const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
       });
     },
     onDisconnect: () => {
-      console.log("Conversation disconnected, ID:", conversationId);
-      onConversationEnd?.(conversationId);
+      const convId = conversationIdRef.current;
+      console.log("Conversation disconnected, ID:", convId);
+      onConversationEnd?.(convId);
     },
     onError: (error) => {
       console.error("Conversation error:", error);
@@ -54,7 +55,7 @@ const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
         signedUrl: data.signed_url 
       });
       
-      setConversationId(convId);
+      conversationIdRef.current = convId;
       console.log("Conversation started with ID:", convId);
     } catch (error) {
       console.error("Error starting conversation:", error);
