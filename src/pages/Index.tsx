@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import ImageUpload from "@/components/ImageUpload";
 import VoiceAgent from "@/components/VoiceAgent";
 import UserInfoForm, { UserInfo } from "@/components/UserInfoForm";
-import jessicaLogo from "@/assets/jessica-logo.jpg";
+import jessicaLogo from "@/assets/jessica-logo.png";
 type UploadStatus = "idle" | "uploading" | "verifying" | "processing" | "ready" | "accepted" | "evaluates";
 const Index = () => {
   const navigate = useNavigate();
