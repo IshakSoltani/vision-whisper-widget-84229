@@ -259,19 +259,7 @@ const Index = () => {
 
           {/* Info Cards */}
           {uploadStatus === "idle" && userInfo && <div className="grid md:grid-cols-3 gap-4 animate-fade-in">
-              <Card className="p-4 backdrop-blur-sm bg-card/60 border-border/50">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Upload className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Upload</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Drop your image or click to browse
-                    </p>
-                  </div>
-                </div>
-              </Card>
+              
 
               
 
