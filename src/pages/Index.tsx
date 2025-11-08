@@ -168,7 +168,7 @@ const Index = () => {
       description: "You can now upload your image."
     });
   };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10 flex items-center justify-center">
       <div className="container mx-auto px-4 py-8 md:py-16">
         <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
           {/* Header */}
