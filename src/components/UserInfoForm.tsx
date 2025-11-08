@@ -33,9 +33,14 @@ const UserInfoForm = ({ onSubmit }: UserInfoFormProps) => {
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="text-base">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your name" {...field} />
+                <Input 
+                  placeholder="Enter your name" 
+                  autoComplete="name"
+                  className="h-12 text-base"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -47,16 +52,24 @@ const UserInfoForm = ({ onSubmit }: UserInfoFormProps) => {
           name="claimId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Claim ID</FormLabel>
+              <FormLabel className="text-base">Claim ID</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your claim ID" {...field} />
+                <Input 
+                  placeholder="Enter your claim ID" 
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  inputMode="text"
+                  className="h-12 text-base"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full h-12 text-base font-semibold">
           Continue to Image Upload
         </Button>
       </form>

@@ -83,21 +83,21 @@ const Conversation = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10">
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-          <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10 safe-area-inset">
+      <div className="container mx-auto px-4 py-4 sm:py-8 md:py-12">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
+          <Card className="p-4 sm:p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
             {!conversationEnded ? (
               <div className="space-y-6">
-                <div className="text-center space-y-4 pb-6 border-b border-border">
+                <div className="text-center space-y-3 sm:space-y-4 pb-4 sm:pb-6 border-b border-border">
                   <img 
                     src={state.imageUrl} 
                     alt="Uploaded" 
-                    className="max-w-sm mx-auto rounded-lg shadow-md" 
+                    className="max-w-[200px] sm:max-w-xs mx-auto rounded-lg shadow-md" 
                   />
-                  <div>
-                    <h2 className="text-2xl font-semibold">Talk to Our Agent</h2>
-                    <p className="text-muted-foreground">
+                  <div className="px-4">
+                    <h2 className="text-xl sm:text-2xl font-semibold">Talk to Our Agent</h2>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Our agent will ask you a few questions about your image
                     </p>
                   </div>
@@ -108,13 +108,13 @@ const Conversation = () => {
                 </div>
               </div>
             ) : (
-              <div className="text-center space-y-6 py-12 animate-scale-in">
+              <div className="text-center space-y-6 py-8 sm:py-12 animate-scale-in px-4">
                 <div className="flex justify-center">
-                  <CheckCircle2 className="w-20 h-20 text-primary" />
+                  <CheckCircle2 className="w-16 h-16 sm:w-20 sm:h-20 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold">Conversation Complete!</h2>
-                  <p className="text-xl text-muted-foreground">
+                  <h2 className="text-2xl sm:text-3xl font-bold">Conversation Complete!</h2>
+                  <p className="text-base sm:text-xl text-muted-foreground">
                     Click Next to submit your information
                   </p>
                 </div>
@@ -122,12 +122,12 @@ const Conversation = () => {
                 <Button 
                   onClick={handleNext}
                   size="lg"
-                  className="mt-6"
+                  className="mt-6 h-14 text-base sm:text-lg w-full max-w-xs font-semibold"
                   disabled={loadingTranscript}
                 >
                   {loadingTranscript ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                       Sending...
                     </>
                   ) : (

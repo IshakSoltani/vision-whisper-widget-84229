@@ -79,44 +79,52 @@ const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8">
-      <div className="text-center space-y-2">
+    <div className="flex flex-col items-center gap-6 py-6 sm:py-8">
+      <div className="text-center space-y-3">
         {conversation.status === "connected" ? (
           <>
             <div className="flex justify-center">
               <div className="relative">
-                <Mic className="w-16 h-16 text-primary animate-pulse" />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Mic className="w-10 h-10 sm:w-12 sm:h-12 text-primary animate-pulse" />
+                </div>
                 <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping" />
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base sm:text-lg font-medium text-foreground">
               {conversation.isSpeaking ? "Agent is speaking..." : "Listening..."}
+            </p>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Tap to speak when agent finishes
             </p>
           </>
         ) : (
           <>
-            <MicOff className="w-16 h-16 text-muted-foreground mx-auto" />
-            <p className="text-sm text-muted-foreground">Ready to start</p>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-muted flex items-center justify-center">
+              <MicOff className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground" />
+            </div>
+            <p className="text-base sm:text-lg font-medium">Ready to start</p>
+            <p className="text-xs sm:text-sm text-muted-foreground">Tap the button below to begin</p>
           </>
         )}
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex gap-4 w-full max-w-xs">
         {conversation.status !== "connected" ? (
           <Button 
             onClick={startConversation}
             disabled={isLoading}
             size="lg"
-            className="min-w-[140px]"
+            className="flex-1 h-14 text-base sm:text-lg font-semibold"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Connecting...
               </>
             ) : (
               <>
-                <Mic className="w-4 h-4 mr-2" />
+                <Mic className="w-5 h-5 mr-2" />
                 Start Call
               </>
             )}
@@ -126,9 +134,9 @@ const VoiceAgent = ({ onConversationEnd }: VoiceAgentProps) => {
             onClick={endConversation}
             variant="destructive"
             size="lg"
-            className="min-w-[140px]"
+            className="flex-1 h-14 text-base sm:text-lg font-semibold"
           >
-            <MicOff className="w-4 h-4 mr-2" />
+            <MicOff className="w-5 h-5 mr-2" />
             End Call
           </Button>
         )}

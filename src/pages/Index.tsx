@@ -163,41 +163,41 @@ const Index = () => {
       description: "You can now upload your image."
     });
   };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10 flex items-center justify-center">
-      <div className="container mx-auto px-4 py-8 md:py-16">
-        <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-primary/10 flex items-center justify-center safe-area-inset">
+      <div className="container mx-auto px-4 py-4 sm:py-8 md:py-12">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
           {/* Header */}
-          <div className="text-center mb-8 animate-fade-in">
-            <img src={jessicaLogo} alt="Jessica Logo" className="h-20 md:h-24 mx-auto mb-4 object-contain" />
+          <div className="text-center mb-4 sm:mb-6 animate-fade-in">
+            <img src={jessicaLogo} alt="Jessica Logo" className="h-16 sm:h-20 md:h-24 mx-auto mb-2 sm:mb-4 object-contain" />
           </div>
 
           {/* User Info Form */}
-          {!userInfo && <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
-              <div className="space-y-4">
+          {!userInfo && <Card className="p-4 sm:p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h2 className="text-2xl font-semibold">Claim Information</h2>
-                  <p className="text-muted-foreground">Please provide details about your claim</p>
+                  <h2 className="text-xl sm:text-2xl font-semibold">Claim Information</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground">Please provide details about your claim</p>
                 </div>
                 <UserInfoForm onSubmit={handleUserInfoSubmit} />
               </div>
             </Card>}
 
           {/* Upload Section */}
-          {userInfo && <Card className="p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
+          {userInfo && <Card className="p-4 sm:p-6 md:p-8 backdrop-blur-sm bg-card/80 border-border/50 shadow-lg">
               {uploadStatus === "idle" && <ImageUpload onImageSelect={handleImageUpload} />}
 
-            {uploadStatus === "uploading" && <div className="text-center py-12 space-y-4 animate-scale-in">
-                <Loader2 className="w-16 h-16 mx-auto text-primary animate-spin" />
-                <p className="text-lg font-medium">Uploading image...</p>
+            {uploadStatus === "uploading" && <div className="text-center py-8 sm:py-12 space-y-4 animate-scale-in">
+                <Loader2 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-primary animate-spin" />
+                <p className="text-base sm:text-lg font-medium">Uploading image...</p>
               </div>}
 
-            {uploadStatus === "verifying" && <div className="text-center py-12 space-y-4 animate-scale-in">
+            {uploadStatus === "verifying" && <div className="text-center py-8 sm:py-12 space-y-4 animate-scale-in">
                 <div className="relative">
-                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-xs mx-auto rounded-lg shadow-md mb-6" />}
+                  {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-[200px] sm:max-w-xs mx-auto rounded-lg shadow-md mb-4 sm:mb-6" />}
                 </div>
-                <Loader2 className="w-16 h-16 mx-auto text-accent animate-spin" />
-                <p className="text-lg font-medium">Verifying your submission...</p>
-                <p className="text-sm text-muted-foreground">
+                <Loader2 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-accent animate-spin" />
+                <p className="text-base sm:text-lg font-medium">Verifying your submission...</p>
+                <p className="text-sm text-muted-foreground px-4">
                   Please wait while we review your image
                 </p>
               </div>}
@@ -213,22 +213,22 @@ const Index = () => {
                 </p>
               </div>}
 
-            {uploadStatus === "accepted" && <div className="text-center py-12 space-y-4 animate-fade-in">
-                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md mb-6" />}
-                <CheckCircle2 className="w-16 h-16 mx-auto text-green-500" />
-                <p className="text-xl font-semibold">Evidence Upload Complete</p>
-                <p className="text-muted-foreground">{n8nMessage || "Your submission has been successfully processed."}</p>
-                <Button onClick={resetUpload} className="mt-4">
+            {uploadStatus === "accepted" && <div className="text-center py-8 sm:py-12 space-y-4 animate-fade-in">
+                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-[250px] sm:max-w-sm mx-auto rounded-lg shadow-md mb-4 sm:mb-6" />}
+                <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-green-500" />
+                <p className="text-lg sm:text-xl font-semibold px-4">Evidence Upload Complete</p>
+                <p className="text-sm sm:text-base text-muted-foreground px-4">{n8nMessage || "Your submission has been successfully processed."}</p>
+                <Button onClick={resetUpload} className="mt-4 h-12 text-base">
                   Start Over
                 </Button>
               </div>}
 
-            {uploadStatus === "evaluates" && <div className="text-center py-12 space-y-4 animate-fade-in">
-                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-sm mx-auto rounded-lg shadow-md mb-6" />}
-                <CheckCircle2 className="w-16 h-16 mx-auto text-accent" />
-                <p className="text-xl font-semibold">Under Evaluation</p>
-                <p className="text-muted-foreground">{n8nMessage || "Your submission is being reviewed. We'll notify you once the evaluation is complete."}</p>
-                <Button onClick={resetUpload} variant="outline" className="mt-4">
+            {uploadStatus === "evaluates" && <div className="text-center py-8 sm:py-12 space-y-4 animate-fade-in">
+                {uploadedImage && <img src={uploadedImage} alt="Uploaded" className="max-w-[250px] sm:max-w-sm mx-auto rounded-lg shadow-md mb-4 sm:mb-6" />}
+                <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-accent" />
+                <p className="text-lg sm:text-xl font-semibold px-4">Under Evaluation</p>
+                <p className="text-sm sm:text-base text-muted-foreground px-4">{n8nMessage || "Your submission is being reviewed. We'll notify you once the evaluation is complete."}</p>
+                <Button onClick={resetUpload} variant="outline" className="mt-4 h-12 text-base">
                   Start Over
                 </Button>
               </div>}
