@@ -44,6 +44,7 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log('Transcript retrieved successfully');
+    console.log('Response structure:', JSON.stringify(data).substring(0, 500)); // Log first 500 chars to debug
 
     // Update transcript in Airtable
     const airtableApiKey = Deno.env.get('AIRTABLE_API_KEY');
@@ -84,14 +85,27 @@ serve(async (req) => {
 
         // Extract transcript text from the conversation data
         let transcriptText = '';
-        if (data.transcript) {
+        
+        // Check different possible structures
+        if (typeof data.transcript === 'string') {
           transcriptText = data.transcript;
-        } else if (data.analysis?.transcript_with_data) {
+        } else if (Array.isArray(data.analysis?.transcript_with_data)) {
           // Extract messages from transcript_with_data array
           transcriptText = data.analysis.transcript_with_data
             .map((item: any) => `${item.role}: ${item.message}`)
             .join('\n');
+        } else if (Array.isArray(data)) {
+          // If data itself is the transcript array
+          transcriptText = data
+            .map((item: any) => `${item.role}: ${item.message}`)
+            .join('\n');
+        } else {
+          // Fallback: try to find transcript in the response
+          console.warn('Unexpected response structure, using fallback');
+          transcriptText = JSON.stringify(data, null, 2);
         }
+
+        console.log('Extracted transcript text (first 200 chars):', transcriptText.substring(0, 200));
 
         // Update the record with just the transcript message
         const updatePayload = {
