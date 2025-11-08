@@ -1,1 +1,7 @@
 project_id = "zwnukypdfdfrsnyzgsbu"
+
+[functions.get-elevenlabs-transcript]
+verify_jwt = false
+
+[functions.get-elevenlabs-signed-url]
+verify_jwt = false
