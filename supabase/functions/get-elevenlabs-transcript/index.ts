@@ -82,10 +82,21 @@ serve(async (req) => {
         const recordId = listData.records[0].id;
         console.log('Found record:', recordId);
 
-        // Update the record with the transcript
+        // Extract transcript text from the conversation data
+        let transcriptText = '';
+        if (data.transcript) {
+          transcriptText = data.transcript;
+        } else if (data.analysis?.transcript_with_data) {
+          // Extract messages from transcript_with_data array
+          transcriptText = data.analysis.transcript_with_data
+            .map((item: any) => `${item.role}: ${item.message}`)
+            .join('\n');
+        }
+
+        // Update the record with just the transcript message
         const updatePayload = {
           fields: {
-            'elevenlabs_transcript': JSON.stringify(data, null, 2),
+            'elevenlabs_transcript': transcriptText,
           }
         };
 
