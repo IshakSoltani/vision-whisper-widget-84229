@@ -45,53 +45,77 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Transcript retrieved successfully');
 
-    // Send transcript to Airtable
+    // Update transcript in Airtable
     const airtableApiKey = Deno.env.get('AIRTABLE_API_KEY');
     const airtableBaseId = Deno.env.get('AIRTABLE_BASE_ID');
     const airtableTableName = Deno.env.get('AIRTABLE_TABLE_NAME');
 
-    if (airtableApiKey && airtableBaseId && airtableTableName) {
+    if (airtableApiKey && airtableBaseId && airtableTableName && claimId) {
       try {
-        const airtablePayload = {
-          records: [
-            {
-              fields: {
-                'Conversation ID': conversationId,
-                'Claim ID': claimId || '',
-                'Transcript': JSON.stringify(data, null, 2),
-                'Timestamp': new Date().toISOString(),
-              }
-            }
-          ]
+        console.log('Finding Airtable record with Claim ID:', claimId);
+        
+        // First, find the record with matching claim_id
+        const filterFormula = `{claim_id}='${claimId}'`;
+        const listResponse = await fetch(
+          `https://api.airtable.com/v0/${airtableBaseId}/${encodeURIComponent(airtableTableName)}?filterByFormula=${encodeURIComponent(filterFormula)}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${airtableApiKey}`,
+            },
+          }
+        );
+
+        if (!listResponse.ok) {
+          const errorText = await listResponse.text();
+          console.error('Airtable list API failed:', errorText);
+          throw new Error(`Airtable list API error: ${errorText}`);
+        }
+
+        const listData = await listResponse.json();
+        
+        if (!listData.records || listData.records.length === 0) {
+          console.error('No record found with Claim ID:', claimId);
+          throw new Error(`No Airtable record found with claim_id: ${claimId}`);
+        }
+
+        const recordId = listData.records[0].id;
+        console.log('Found record:', recordId);
+
+        // Update the record with the transcript
+        const updatePayload = {
+          fields: {
+            'elevenlabs_transcript': JSON.stringify(data, null, 2),
+          }
         };
 
-        console.log('Sending transcript to Airtable');
-        const airtableResponse = await fetch(
-          `https://api.airtable.com/v0/${airtableBaseId}/${encodeURIComponent(airtableTableName)}`,
+        console.log('Updating Airtable record with transcript');
+        const updateResponse = await fetch(
+          `https://api.airtable.com/v0/${airtableBaseId}/${encodeURIComponent(airtableTableName)}/${recordId}`,
           {
-            method: 'POST',
+            method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${airtableApiKey}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(airtablePayload),
+            body: JSON.stringify(updatePayload),
           }
         );
 
-        if (!airtableResponse.ok) {
-          const errorText = await airtableResponse.text();
-          console.error('Airtable API failed:', errorText);
-          throw new Error(`Airtable API error: ${errorText}`);
-        } else {
-          console.log('Successfully sent transcript to Airtable');
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          console.error('Airtable update API failed:', errorText);
+          throw new Error(`Airtable update API error: ${errorText}`);
         }
+        
+        console.log('Successfully updated transcript in Airtable');
       } catch (airtableError) {
-        console.error('Error sending to Airtable:', airtableError);
+        console.error('Error updating Airtable:', airtableError);
         throw airtableError;
       }
     } else {
-      console.warn('Airtable credentials not fully configured');
-      throw new Error('Airtable credentials not configured');
+      console.warn('Airtable credentials not fully configured or claim_id missing');
+      throw new Error('Airtable credentials not configured or claim_id missing');
     }
 
     return new Response(
